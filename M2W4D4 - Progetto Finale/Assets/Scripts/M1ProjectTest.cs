@@ -2,36 +2,25 @@ using UnityEngine;
 
 public class M1ProjectTest : MonoBehaviour
 {
-    private Hero a;
-    private Hero b;
+    [SerializeField] private Hero a;
+    [SerializeField] private Hero b;
+
     private bool combatEnded = false;
-
-    private float roundTimer = 0f;
-    private float roundInterval = 1f; // 1 secondo tra un round e l’altro
-
-    private void Start()
-    {
-        InitRandomHeroes();
-    }
 
     private void Update()
     {
-        if (combatEnded) return;
-
-        roundTimer += Time.deltaTime;
-
-        if (roundTimer >= roundInterval)
+        if (!combatEnded)
         {
-            HandleCombatRound();
-            roundTimer = 0f;
+            HandleCombatRound(); 
         }
     }
 
     private void HandleCombatRound()
     {
+        // Se un personaggio è morto, il metodo ritorna
         if (!a.IsAlive())
         {
-            Debug.Log($"{b.Name} wins!");
+            Debug.Log($"{b.Name} wins!"); 
             combatEnded = true;
             return;
         }
@@ -43,22 +32,36 @@ public class M1ProjectTest : MonoBehaviour
             return;
         }
 
+        // Calcolo velocità (spd base + bonus arma)
         int aSpeed = a.BaseStats.spd + a.Weapon.BonusStats.spd;
         int bSpeed = b.BaseStats.spd + b.Weapon.BonusStats.spd;
 
         Hero first = aSpeed >= bSpeed ? a : b;
         Hero second = (first == a) ? b : a;
 
-        Debug.Log($"ROUND START: {first.Name} goes first");
+        // Stampa chi attacca e chi si difende
+        Debug.Log($"ROUND START: {first.Name} attacks {second.Name}");
 
-        SimulateAttack(first, second);
+        SimulateAttack(first, second); // ✅ Attacco principale
 
         if (second.IsAlive())
         {
+            // Se il difensore è vivo, contrattacca
+            Debug.Log($"{second.Name} counter-attacks {first.Name}");
             SimulateAttack(second, first);
         }
 
-        Debug.Log($"ROUND END");
+        // Controllo vincitore finale (dopo entrambi gli attacchi)
+        if (!a.IsAlive())
+        {
+            Debug.Log($"{b.Name} wins!");
+            combatEnded = true;
+        }
+        else if (!b.IsAlive())
+        {
+            Debug.Log($"{a.Name} wins!");
+            combatEnded = true;
+        }
     }
 
     private void SimulateAttack(Hero attacker, Hero defender)
@@ -68,42 +71,44 @@ public class M1ProjectTest : MonoBehaviour
 
         Debug.Log($"{attacker.Name} attacks {defender.Name}");
 
+        // Si calcola solo se colpisce
         if (!GameFormulas.HasHit(atkStats.aim, defStats.eva))
-        {
+        {   
             Debug.Log("Attack missed!");
             return;
         }
 
+        //  Calcolo del danno (include critico e modificatori elementali)
         int damage = GameFormulas.CalculateDamage(attacker, defender);
+
+        //  Il danno viene inflitto
         defender.TakeDamage(damage);
+
+        // Stampa HP residui
         Debug.Log($"{defender.Name} takes {damage} damage. Remaining HP: {defender.Hp}");
     }
 
-    private void InitRandomHeroes()
+    // Funzione creata durante lo sviluppo per testare i personaggi più velocemente e dinamicamente
+       private Hero CreateRandomHero(string name, string weaponName)
     {
         int R(int min, int max) => Random.Range(min, max + 1);
-
         Stats RandomStats() => new Stats(R(5, 20), R(5, 20), R(5, 20), R(5, 20), R(5, 20), R(50, 100), R(5, 20));
-        ELEMENT RandomElement() => (ELEMENT)Random.Range(1, 4); // FIRE, ICE, LIGHTNING
+        ELEMENT RandomElem() => (ELEMENT)Random.Range(1, 4);
 
-        Weapon RandomWeapon(string name) => new Weapon(
-            name,
+        ELEMENT resistance = RandomElem();
+        ELEMENT weakness;
+        do { weakness = RandomElem(); } while (weakness == resistance);
+
+        Weapon weapon = new Weapon(
+            weaponName,
             (Random.value > 0.5f) ? Weapon.DAMAGE_TYPE.PHYSICAL : Weapon.DAMAGE_TYPE.MAGICAL,
-            RandomElement(),
+            RandomElem(),
             RandomStats()
         );
 
-        ELEMENT r1 = RandomElement();
-        ELEMENT w1;
-        do { w1 = RandomElement(); } while (w1 == r1);
+        //return new Hero(name, R(60, 100), RandomStats(), resistance, weakness, weapon);
+        return new Hero(name, 200, RandomStats(), resistance, weakness, weapon); // Per testing forzo più HP ai personaggi per far fare più rounds.
 
-        ELEMENT r2 = RandomElement();
-        ELEMENT w2;
-        do { w2 = RandomElement(); } while (w2 == r2);
-
-        a = new Hero("Hero A", R(60, 100), RandomStats(), r1, w1, RandomWeapon("Sword"));
-        b = new Hero("Hero B", R(60, 100), RandomStats(), r2, w2, RandomWeapon("Staff"));
-
-        Debug.Log("Random heroes created.");
     }
 }
+// 
