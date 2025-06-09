@@ -21,15 +21,13 @@ public class PlayerController : MonoBehaviour
         {
             Debug.LogError("PlayerController richiede un componente Rigidbody2D sullo stesso GameObject.");
         }
-        
         // Congela la rotazione Z per un player 2D
         if (rb != null)
         {
-            rb.freezeRotation = true; 
+            rb.freezeRotation = true;
         }
     }
 
-    // Update viene chiamato una volta per frame
     private void Update()
     {
         horizontal = Input.GetAxisRaw("Horizontal");
@@ -44,15 +42,14 @@ public class PlayerController : MonoBehaviour
         MovePlayer();
     }
 
-    /// <summary>
-    /// Gestisce il movimento fisico del giocatore tramite Rigidbody2D.
-    /// </summary>
+
+    /// Gestisce il movimento del giocatore
     private void MovePlayer()
     {
         if (rb != null)
         {
             // Se c'è input di movimento
-            if (Direction.magnitude > 0.1f) 
+            if (Direction.magnitude > 0.1f)
             {
                 // Imposta direttamente la velocità del Rigidbody nella direzione e con la velocità desiderata
                 rb.velocity = Direction * speed;
@@ -61,8 +58,9 @@ public class PlayerController : MonoBehaviour
             {
                 // Azzera la velocità del Rigidbody per fermare qualsiasi movimento residuo
                 // Il Linear Drag elevato sul Rigidbody2D garantirà che questo sia istantaneo.
-                rb.velocity = Vector2.zero; 
+                rb.velocity = Vector2.zero;
             }
         }
     }
+
 }
