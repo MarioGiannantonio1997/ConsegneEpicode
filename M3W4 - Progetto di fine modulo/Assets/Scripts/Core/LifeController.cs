@@ -32,7 +32,7 @@ public class LifeController : MonoBehaviour
         Destroy(gameObject);
 
         // Puoi aggiungere qui effetti di morte (es. animazioni, particelle, suono)
-        // Oppure logica per gestire la morte del giocatore (es. schermata Game Over)
+        // Oppure logica per gestire la morte del giocatore 
     }
 
     public float GetCurrentHealth()
